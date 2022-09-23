@@ -1,0 +1,14 @@
+
+    Application.DisplayAlerts = False
+    Application.ScreenUpdating = False
+    Sheets("Helper").Unprotect Password:="your_password"
+    Sheets("Raw_Data").Unprotect Password:="your_password"
+    
+    [CODE]
+    
+    Sheets("Helper").Protect Password:="your_password"
+    Sheets("Raw_Data").Protect Password:="your_password"
+    Application.ScreenUpdating = True
+    Application.DisplayAlerts = True
+    
+    

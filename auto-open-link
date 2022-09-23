@@ -1,0 +1,19 @@
+
+'Set local office name
+    Dim LocalOffice As Variant
+    LocalOffice = Worksheets("Home").Range("C2").Value
+
+'Open Data source in browser
+    Dim datasource_url As String
+    datasource_url = "link_part1" & Format(Year(Last_sun), "00") & "-" & Format(Month(Last_sun), "00") & "-" & Format(Day(Last_sun), "00") & "link_part2" & Format(Year(Last_sat), "00") & "-" & Format(Month(Last_sat), "00") & "-" & Format(Day(Last_sat), "00") & "link_part3" & LocalOffice & "link_part4"
+        
+    Dim objShell
+    Set objShell = CreateObject("WScript.Shell")
+    
+'Wait for input to continue prompt
+    objShell.Run (datasource_url)
+    MsgBox "Download the data by clicking on 'Export as CSV'" & vbNewLine & vbNewLine & "Press 'Accept' only once you've done so"
+  
+    Application.Wait (Now + TimeValue("0:00:03"))
+    
+    

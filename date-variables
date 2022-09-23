@@ -1,0 +1,10 @@
+
+'Set first day of last week
+    Dim Last_sun As Date
+    Last_sun = DateAdd("d", -Weekday(Now) - 7, Now)
+    
+
+'Set last day of lst week
+    Dim Last_sat As Date
+    Last_sat = DateAdd("d", -Weekday(Now), Now)
+    

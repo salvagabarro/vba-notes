@@ -1,0 +1,69 @@
+'Eliminar Queries anteriores con el mismo nombre para evitar problemas de compatibilidad
+    On Error Resume Next
+        ActiveWorkbook.Queries("UserData").Delete
+    On Error GoTo 0
+    
+'Create Temporary Tab
+
+    Sheets.Add.Name = "TEMP"
+    
+'Import .csv file from "Downloads" folder, knowing its variable name
+    Sheets("Helper").Select
+    Range("Down_Folder[Down_Folder]").Select
+    ActiveCell.FormulaR1C1 = Environ$("USERPROFILE") & "\Downloads" & "\export_" & MonthNameENG(Month(Date)) & "-" & DayString(Date) & "-" & Year(Date)
+    Range("Down_Folder2[Down_Folder2]").Select
+    ActiveCell.FormulaR1C1 = Environ$("USERPROFILE") & "\Downloads" & "\" & findFile(Range("Down_Folder[Down_Folder]").Value)
+    Range("A1").Select
+    Sheets("TEMP").Select
+
+    Dim varSource As Variant
+    varSource = Range("Down_Folder2[Down_Folder2]").Value
+
+    Range("A1").Select
+    On Error Resume Next
+    ActiveWorkbook.Queries.Add Name:="UserData", Formula:= _
+        "let" & Chr(13) & "" & Chr(10) & "    Source = Csv.Document(File.Contents(""" & varSource & """),[Delimiter="","", Columns=15, Encoding=1252, QuoteStyle=QuoteStyle.None])," & Chr(13) & "" & Chr(10) & "    #""Promoted Headers"" = Table.PromoteHeaders(Source, [PromoteAllScalars=true])," & Chr(13) & "" & Chr(10) & "    #""Changed Type"" = Table.TransformColumnTypes(#""Promoted Headers"",{{""timestamp"", type text}" & _
+        ", {""user_id"", type text}, {""manager"", type text}, {""asin"", type text}, {""bin"", type text}, {""container"", type text}, {""case_pack_quantity"", type text}, {""item_package_quantity"", type text}, {""zone"", type text}, {""item_name"", type text}, {""gl_product_group_name"", type text}, {""binding_name"", type text}, {""fnsku"", type text}, {""lpn_available""" & _
+        ", type logical}, {""lpn"", type text}})" & Chr(13) & "" & Chr(10) & "in" & Chr(13) & "" & Chr(10) & "    #""Changed Type"""
+    With ActiveSheet.ListObjects.Add(SourceType:=0, Source:= _
+        "OLEDB;Provider=Microsoft.Mashup.OleDb.1;Data Source=$Workbook$;Location=UserData;Extended Properties=""""" _
+        , Destination:=Range("$A$1")).QueryTable
+        .CommandType = xlCmdSql
+        .CommandText = Array("SELECT * FROM [UserData]")
+        .RowNumbers = False
+        .FillAdjacentFormulas = False
+        .PreserveFormatting = True
+        .RefreshOnFileOpen = False
+        .BackgroundQuery = True
+        .RefreshStyle = xlInsertDeleteCells
+        .SavePassword = False
+        .SaveData = True
+        .AdjustColumnWidth = True
+        .RefreshPeriod = 0
+        .PreserveColumnInfo = True
+        .ListObject.DisplayName = "UserData"
+        .Refresh BackgroundQuery:=False
+    End With
+
+    Application.Wait (Now + TimeValue("0:00:05"))
+
+'Delete previous query connections
+    Dim pq1 As Object
+        For Each pq In ThisWorkbook.Queries
+            pq.Delete
+        Next
+
+    Dim pq2 As Object
+        For Each pq In ThisWorkbook.Connections
+            pq.Delete
+        Next
+  
+'Abort if data isn't loaded
+    If Worksheets("TEMP").Range("A10") = "" Then
+        Sheets("Home").Select
+        Sheets("TEMP").Delete
+        Sheets("Helper").Protect Password:="your_password"
+        Sheets("Raw_Data").Protect Password:="your_password"
+        MsgBox "There has been a problem loading the file: No data was found." & vbNewLine & vbNewLine & "Common issues to look out for:" & vbNewLine & "1. File wasn't downloaded correctly." & vbNewLine & "2. File isn't named approppiately - 'export_Month-00th-2022(x).csv'." & vbNewLine & "3. File isn't stored in the Downloads folder."
+        Exit Sub
+    End If

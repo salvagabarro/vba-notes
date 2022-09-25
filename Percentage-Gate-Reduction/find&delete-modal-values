@@ -1,0 +1,60 @@
+
+Application.DisplayAlerts = False
+Sheets("New_Data").Select
+Dim Rng As Range
+Dim WorkRng As Range
+Set dic = CreateObject("scripting.dictionary")
+On Error Resume Next
+Set WorkRng = Range("G2:G25000")
+
+For Each Rng In WorkRng
+    xValue = Rng.Value
+    If xValue <> "" Then
+        dic(xValue) = dic(xValue) + 1
+        xCount = dic(xValue)
+        If xCount > xMax Then
+            xMax = xCount
+            xOutValue = xValue
+        End If
+    End If
+Next
+
+Dim ModePS As String
+    ModePS = xOutValue
+    
+'StoreData is a function that copies to clipbioard
+StoreData (ModePS)
+
+Dim answer As Integer
+answer = MsgBox("El ASIN modal es el " & ModePS & "; ¿Quieres eliminarlo?", vbQuestion + vbYesNo)
+
+    If answer = vbYes Then
+        Sheets("New_Data").Select
+        Dim wksPS As Worksheet
+        Dim tblPS As ListObject
+        Dim lastRowPS As Long
+        Dim RngPS As Range
+    
+        Set wksPS = ActiveWorkbook.Sheets("New_Data")
+    
+        Set tblPS = wksPS.ListObjects("Table_New_Data")
+    
+        ' Filter and delete all rows that are larger than 0
+        With tblPS.Range
+            ' Switch off the filters before turning it on
+        .AutoFilter
+             ' Field:=24 must be equal to the column where you have the criteria in
+        .AutoFilter Field:=7, Criteria1:="=" & ModePS
+        .AutoFilter Field:=23, Criteria1:="<>0"
+    
+            ' Set the range for the filtered cells
+        On Error Resume Next
+        Set RngPS = .Offset(1).Resize(.Rows.Count - 1).SpecialCells(xlCellTypeVisible)
+        RngPS.DELETE ' Delete the filtered cells
+        .AutoFilter
+        End With
+    If answer = vbNo Then
+        MsgBox "Okay :)"
+    End If
+End If
+

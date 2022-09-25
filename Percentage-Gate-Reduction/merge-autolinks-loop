@@ -1,0 +1,79 @@
+Sub Update_rollup_Part2()
+    'IMPORTANT: This first part only contemplates Each_Transfr_In
+
+    For j = 1002976 To 1003017 Step 41  'Step is how large we want to make each loop (if step is 2 in a loop from 0 to 10, we will go through 0, 2, 4, 6, 8 and 10 only
+    
+        For i = 0 To 7
+            
+            Dim Rolluphistory, ROLLUP2 As Workbook
+            
+            'Worksheets("Rollup").Visible = True
+            
+            Dim myROLLUP2 As String
+            myROLLUP2 = "https://fclm-portal.amazon.com/reports/functionRollup?reportFormat=CSV&warehouseId=BCN1&processId=" & j & "&spanType=Day&startDateDay=" & Year(Date - i) & "%2F" & Month(Date - i) & "%2F" & Day(Date - i) & "&maxIntradayDays=1&startHourIntraday=0&startMinuteIntraday=0&endHourIntraday=0&endMinuteIntraday=0"
+            
+            Application.DisplayAlerts = False
+            Application.EnableEvents = False
+            
+            Dim WinHttpReq As Object
+            Set WinHttpReq = CreateObject("Microsoft.XMLHTTP")
+            WinHttpReq.Open "GET", myROLLUP2, False
+            WinHttpReq.send
+                Set oStream = CreateObject("ADODB.Stream")
+                oStream.Open
+                oStream.Type = 1
+                oStream.Write WinHttpReq.responseBody
+                oStream.SaveToFile "C:\Temp\fileROLLUP2.csv", 2 ' 1 = no overwrite, 2 = overwrite
+                oStream.Close
+            
+            Set Rolluphistory = ThisWorkbook
+            
+            Sheets.Add.Name = "TEMP"
+            
+            Rolluphistory.Worksheets("TEMP").Activate
+            
+            Rolluphistory.Sheets("TEMP").Range("A1").Select
+            Rows("8:8").Select
+            Range(Selection, Selection.End(xlDown)).Select
+            Selection.DELETE Shift:=xlUp
+                
+            Range("A2:R2").Select
+            Range(Selection, Selection.End(xlDown)).Select
+            Selection.ClearContents
+                
+            Range("A1").Select
+            
+            Set ROLLUP2 = Workbooks.Open("C:\Temp\fileROLLUP2.csv")
+            ROLLUP2.Sheets("fileROLLUP2").Range("A1:R1").Select
+            ROLLUP2.Sheets("fileROLLUP2").Range(Selection, Selection.End(xlDown)).Copy
+            
+            Rolluphistory.Sheets("TEMP").Range("A1").PasteSpecial
+            
+            ROLLUP2.Close SaveChanges:=False
+            
+            ' Paste to Rollup tab
+            
+            Sheets("Rollup").Select
+            Range("A1").Select
+            Selection.End(xlDown).Select
+            ActiveCell.Offset(1).Select
+            Sheets("TEMP").Select
+            Range("A2:R2").Select
+            Range(Selection, Selection.End(xlDown)).Copy
+            Worksheets("Rollup").Activate
+            ActiveSheet.Paste
+            Application.CutCopyMode = False
+            
+            Sheets("TEMP").DELETE
+            
+            'Rolluphistory.RefreshAll
+            
+            Worksheets("Rollup").Activate
+            Cells.Select
+                Selection.FormulaHidden = True
+                Selection.Locked = True
+            Range("A1").Select
+        
+        Next i
+    
+    Next j

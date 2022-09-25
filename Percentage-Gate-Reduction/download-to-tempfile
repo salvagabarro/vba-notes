@@ -1,0 +1,28 @@
+    Dim ROLLUP2 As Workbook
+    
+    Worksheets("Rollup").Visible = True
+    
+'Autodownload link
+    Dim myROLLUP2 As String
+    myROLLUP2 = "https://fclm-portal.amazon.com/reports/functionRollup?reportFormat=CSV&warehouseId=BCN1&processId=1002976&spanType=Day&startDateDay=" & Year(Date - i) & "%2F" & Month(Date - i) & "%2F" & Day(Date - i) & "&maxIntradayDays=1&startHourIntraday=0&startMinuteIntraday=0&endHourIntraday=0&endMinuteIntraday=0"
+    
+    Application.DisplayAlerts = False
+    Application.EnableEvents = False
+
+'Download and save document as csv file
+    Dim WinHttpReq As Object
+    Set WinHttpReq = CreateObject("Microsoft.XMLHTTP")
+    WinHttpReq.Open "GET", myROLLUP2, False
+    WinHttpReq.send
+        Set oStream = CreateObject("ADODB.Stream")
+        oStream.Open
+        oStream.Type = 1
+        oStream.Write WinHttpReq.responseBody
+        oStream.SaveToFile "C:\Temp\fileROLLUP2.csv", 2 ' 1 = no overwrite, 2 = overwrite
+        oStream.Close
+        
+    Set ROLLUP2 = Workbooks.Open("C:\Temp\fileROLLUP2.csv")
+    ROLLUP2.Sheets("fileROLLUP2").Range("A1:R1").Select
+    ROLLUP2.Sheets("fileROLLUP2").Range(Selection, Selection.End(xlDown)).Copy
+    
+    ROLLUP2.Close SaveChanges:=False

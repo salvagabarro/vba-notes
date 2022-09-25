@@ -1,0 +1,19 @@
+' This autodownloads
+   Dim apollo_url As String
+        apollo_url = "https://eu-icqa-audit.corp.amazon.com/reporting/results_by_audit.xlsx?audit_type_id=2879&end_date=" & Year(Date) & "-" & Month(Date) & "-" & Day(Date) & "&" & "start_date=" & Year(Date - 7) & "-" & Month(Date - 7) & "-" & Day(Date - 7)
+    
+    Dim objShell
+    Set objShell = CreateObject("WScript.Shell")
+    
+    objShell.Run (apollo_url)
+
+' This auto opens
+    Dim kibana_url As String
+    kibana_url = "https://tiny.amazon.com/2yqolhm6/atlacorpamazappkibadash3373"
+        
+    Dim objShell2
+    Set objShell2 = CreateObject("WScript.Shell")
+
+    objShell.Run (kibana_url)
+
+    

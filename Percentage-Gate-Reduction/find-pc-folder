@@ -1,0 +1,13 @@
+' Down_Folder is a table with 1 cell
+
+    ' Environ("USERPROFILE") is C:\USER
+        Range("Down_Folder[Down_Folder]").Select
+        ActiveCell.FormulaR1C1 = Environ$("USERPROFILE") & "\Downloads...""
+    
+    ' Application.ActiveWorkbook.Path is the folder where the sheet is stored. 
+        'findFile is a function that finds a file that begins with a string (It will get the latest, largest name)
+
+        Range("Link_Apol[Link_Apol]").Select
+        ActiveCell.FormulaR1C1 = Application.ActiveWorkbook.Path & "\results_by_audit"
+        Range("Down_Folder[Down_Folder]").Select
+        ActiveCell.FormulaR1C1 = Application.ActiveWorkbook.Path & "\" & findFile(Range("Link_Apol[Link_Apol]").Value)

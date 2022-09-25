@@ -1,0 +1,307 @@
+Sub Update_Amnesty()
+
+
+'Download warning
+HeadsUP = MsgBox("Heads up:" & vbNewLine & vbNewLine & "You'll now download only last weeks' Amnesty data." & vbNewLine & vbNewLine & "If you missed a week and want to add it to the dataset as well, you will have to adjust the date range in Kibana accordingly when the tab opens." & vbNewLine & vbNewLine & "Do you wish to continue?", vbOKCancel + vbExclamation)
+If HeadsUP = vbCancel Then
+Exit Sub
+End If
+
+    Application.DisplayAlerts = False
+    Application.ScreenUpdating = False
+    Sheets("Helper").Unprotect Password:="sgabarro"
+    Sheets("Raw_Data").Unprotect Password:="sgabarro"
+
+'Set first day of last week
+    Dim Last_sun As Date
+    Last_sun = DateAdd("d", -Weekday(Now) - 7, Now)
+    
+
+'Set last day of lst week
+    Dim Last_sat As Date
+    Last_sat = DateAdd("d", -Weekday(Now), Now)
+
+'Set local FC name
+    Dim LocalFC As Variant
+    LocalFC = Worksheets("Home").Range("C2").Value
+
+'Open Kibana in browser
+    Dim amnesty_url As String
+    amnesty_url = "https://atlas-kibana.corp.amazon.com/app/kibana#/dashboard/384497c0-fdda-11ec-95a9-6930d0b76e31?_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:'" & Format(Year(Last_sun), "00") & "-" & Format(Month(Last_sun), "00") & "-" & Format(Day(Last_sun), "00") & "T22:00:00.000Z',mode:absolute,to:'" & Format(Year(Last_sat), "00") & "-" & Format(Month(Last_sat), "00") & "-" & Format(Day(Last_sat), "00") & "T21:59:59.999Z'))&_a=(description:'',filters:!(),fullScreenMode:!f,options:(darkTheme:!f,hidePanelTitles:!f,useMargins:!f),panels:!((embeddableConfig:(),gridData:(h:15,i:'9',w:48,x:0,y:0),id:'574c08d0-4503-11e9-a572-c3a1576aa62f',panelIndex:'9',type:search,version:'6.3.0')),query:(language:lucene,query:'warehouse_id:" & LocalFC & "'),timeRestore:!t,title:'ICQA%20APMT%20Dashboard%20-%20Quick%20Link',viewMode:view)"
+        
+    Dim objShell
+    Set objShell = CreateObject("WScript.Shell")
+    
+    objShell.Run (amnesty_url)
+    MsgBox "Download the data by clicking on 'Export as CSV'" & vbNewLine & vbNewLine & "Press 'Accept' only once you've done so"
+  
+    Application.Wait (Now + TimeValue("0:00:03"))
+    
+'Eliminar Queries nteriores para evitar problemas de compatibilidad
+    On Error Resume Next
+        ActiveWorkbook.Queries("AstyData").Delete
+    On Error GoTo 0
+    
+'Create Temporary Tab
+
+    Sheets.Add.Name = "TEMP"
+    
+'Import .csv file from "Downloads" folder
+    Sheets("Helper").Select
+    Range("Down_Folder[Down_Folder]").Select
+    ActiveCell.FormulaR1C1 = Environ$("USERPROFILE") & "\Downloads" & "\export_" & MonthNameENG(Month(Date)) & "-" & DayString(Date) & "-" & Year(Date)
+    Range("Down_Folder2[Down_Folder2]").Select
+    ActiveCell.FormulaR1C1 = Environ$("USERPROFILE") & "\Downloads" & "\" & findFile(Range("Down_Folder[Down_Folder]").Value)
+    Range("A1").Select
+    Sheets("TEMP").Select
+
+    Dim varSource As Variant
+    varSource = Range("Down_Folder2[Down_Folder2]").Value
+
+    Range("A1").Select
+    On Error Resume Next
+    ActiveWorkbook.Queries.Add Name:="AstyData", Formula:= _
+        "let" & Chr(13) & "" & Chr(10) & "    Source = Csv.Document(File.Contents(""" & varSource & """),[Delimiter="","", Columns=15, Encoding=1252, QuoteStyle=QuoteStyle.None])," & Chr(13) & "" & Chr(10) & "    #""Promoted Headers"" = Table.PromoteHeaders(Source, [PromoteAllScalars=true])," & Chr(13) & "" & Chr(10) & "    #""Changed Type"" = Table.TransformColumnTypes(#""Promoted Headers"",{{""timestamp"", type text}" & _
+        ", {""user_id"", type text}, {""manager"", type text}, {""asin"", type text}, {""bin"", type text}, {""container"", type text}, {""case_pack_quantity"", type text}, {""item_package_quantity"", type text}, {""zone"", type text}, {""item_name"", type text}, {""gl_product_group_name"", type text}, {""binding_name"", type text}, {""fnsku"", type text}, {""lpn_available""" & _
+        ", type logical}, {""lpn"", type text}})" & Chr(13) & "" & Chr(10) & "in" & Chr(13) & "" & Chr(10) & "    #""Changed Type"""
+    With ActiveSheet.ListObjects.Add(SourceType:=0, Source:= _
+        "OLEDB;Provider=Microsoft.Mashup.OleDb.1;Data Source=$Workbook$;Location=AstyData;Extended Properties=""""" _
+        , Destination:=Range("$A$1")).QueryTable
+        .CommandType = xlCmdSql
+        .CommandText = Array("SELECT * FROM [AstyData]")
+        .RowNumbers = False
+        .FillAdjacentFormulas = False
+        .PreserveFormatting = True
+        .RefreshOnFileOpen = False
+        .BackgroundQuery = True
+        .RefreshStyle = xlInsertDeleteCells
+        .SavePassword = False
+        .SaveData = True
+        .AdjustColumnWidth = True
+        .RefreshPeriod = 0
+        .PreserveColumnInfo = True
+        .ListObject.DisplayName = "AstyData"
+        .Refresh BackgroundQuery:=False
+    End With
+
+    Application.Wait (Now + TimeValue("0:00:05"))
+
+'Delete previous query connections
+    Dim pq1 As Object
+        For Each pq In ThisWorkbook.Queries
+            pq.Delete
+        Next
+
+    Dim pq2 As Object
+        For Each pq In ThisWorkbook.Connections
+            pq.Delete
+        Next
+  
+'Abort if data isn't loaded
+    If Worksheets("TEMP").Range("A10") = "" Then
+        Sheets("Home").Select
+        Sheets("TEMP").Delete
+        Sheets("Helper").Protect Password:="sgabarro"
+        Sheets("Raw_Data").Protect Password:="sgabarro"
+        MsgBox "There has been a problem loading the file: No data was found." & vbNewLine & vbNewLine & "Common issues to look out for:" & vbNewLine & "1. File wasn't downloaded correctly." & vbNewLine & "2. File isn't named approppiately - 'export_Month-00th-2022(x).csv'." & vbNewLine & "3. File isn't stored in the Downloads folder."
+        Exit Sub
+    End If
+    
+  
+'Add column with unique ProblemID
+    'Crear Celda con Formula
+    Sheets("TEMP").Select
+    Range("P1").Select
+    ActiveCell.FormulaR1C1 = "UniqueID"
+    Range("P2").Select
+    ActiveCell.FormulaR1C1 = "=RC[-15]&RC[-14]&RC[-12]&RC[-11]"
+    Range("P2").Select
+    
+    'Pegar Formula en resto de filas
+    Selection.Copy
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, _
+        SkipBlanks:=False, Transpose:=False
+    
+    'Pasar de formato formula a texto para optimizar
+    Range("P2").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.Copy
+    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+    Application.CutCopyMode = False
+  
+'Check if data already exists
+    Dim c As Range
+    For Each c In Worksheets("TEMP").Range("P10:P20")
+        If IsNumeric(Application.Match(c, Worksheets("Raw_Data").Range("P:P"), 0)) Then
+            Dim d As Range
+            For Each d In Worksheets("TEMP").Range("P5000:P5020")
+                If IsNumeric(Application.Match(c, Worksheets("Raw_Data").Range("P:P"), 0)) Then
+                    Sheets("Home").Select
+                    Sheets("TEMP").Delete
+                    Sheets("Helper").Protect Password:="sgabarro"
+                    Sheets("Raw_Data").Protect Password:="sgabarro"
+                    MsgBox "This dataset has already been loaded." & vbNewLine & "A match with previous weeks' data has been detected in row 10." & vbNewLine & vbNewLine & "The loading process has stopped to avoid duplication." & vbNewLine & vbNewLine & "If this is an error, please check that the correct file is present in your Downloads folder - and remember that you can only automatically load data regarding last weeks Amnesty." & vbNewLine & vbNewLine & "Lastly, make sure that you're running this Spreadsheet from your computer (not from a shared folder) and that the name of the .csv file is the largest one from A to Z."
+                    Exit Sub
+                End If
+            Next d
+        End If
+    Next c
+    
+    If IsEmpty(ThisWorkbook.Worksheets("TEMP").Range("P2").Value) = True Then
+    Sheets("Home").Select
+    Sheets("TEMP").Delete
+    MsgBox "There has been an unexpected error loading the data, new columns cannot be added" & vbNewLine & vbNewLine & "This could be a result of Kibana changing the format of .csv exports - please ask your local Analyst to check and update the code."
+    End If
+    
+'Create Backup
+    'Set backup path and file name
+    Sheets("Helper").Select
+    Range("Backup_Folder[Backup_Folder]").Select
+    ActiveCell.FormulaR1C1 = "\\ant\dept-eu\BCN1\Support\ICQA\2022\Analyst\AAA others\Intern\sgabarro\Amnesty_Reduction\Weekly_Backups\" & LocalFC & "\Backup_Wk" & WorksheetFunction.IsoWeekNum(Date + 1) & ".xlsm"
+    
+    Dim bckpSource As Variant
+    bckpSource = Range("Backup_Folder[Backup_Folder]").Value
+    Dim bckpName As Variant
+    bckpName = "Backup_Wk" & WorksheetFunction.IsoWeekNum(Date + 1) & ".xlsm"
+         
+    'Save file
+    ActiveWorkbook.SaveCopyAs bckpSource
+    Workbooks.Open bckpSource
+    
+    Workbooks(bckpName).Activate
+        Workbooks(bckpName).Sheets("Home").Select
+        On Error Resume Next
+        Workbooks(bckpName).Sheets("TEMP").Delete
+    Workbooks(bckpName).Close SaveChanges:=True
+
+'Add data columns
+    Sheets("TEMP").Select
+    'Cloumns w/ date information, reformatted
+    Range("Q1").Select
+    ActiveCell.FormulaR1C1 = "Date"
+    Range("R1").Select
+    ActiveCell.FormulaR1C1 = "Week"
+    'Columns w/ location information
+    Range("S1").Select
+    ActiveCell.FormulaR1C1 = "Location"
+    Range("T1").Select
+    ActiveCell.FormulaR1C1 = "Floor"
+    Range("U1").Select
+    ActiveCell.FormulaR1C1 = "Fill"
+    
+    'Paste formulas
+    Sheets("TEMP").Select
+    Range("Q2").Select
+    ActiveCell.FormulaR1C1 = "=DATE(NUMBERVALUE(MID(RC[-16],FIND("","",RC[-16],1)-4,4)),VLOOKUP(LEFT(RC[-16],FIND("" "",RC[-16],1)-1),Months[[Column1]:[n]],2,0),IFERROR(NUMBERVALUE(MID(RC[-16],FIND("" "",RC[-16],1)+1,2)),NUMBERVALUE(MID(RC[-16],FIND("" "",RC[-16],1)+1,1))))"
+    Range("R2").Select
+    ActiveCell.FormulaR1C1 = "=ISOWEEKNUM(RC[-1]+1)"
+    Range("S2").Select
+    ActiveCell.FormulaR1C1 = "=IF(MID(RC[-14],1,2)=""AM"",""Station"",IF(MID(RC[-14],1,2)=""P-"",""Gate"",""""))"
+    Range("T2").Select
+    ActiveCell.FormulaR1C1 = "=IFERROR(IF(RC[-1]=""Gate"",NUMBERVALUE(MID(RC[-11],9,1)),IF(RC[-1]=""Station"",NUMBERVALUE(MID(RC[-15],19,1)),"""")),"""")"
+    Range("U2").Select
+    ActiveCell.FormulaR1C1 = "=IFERROR(IF(RC[-2]=""Gate"",MID(RC[-12],7,1),IF(RC[-2]=""Station"",MID(RC[-16],17,1),"""")),"""")"
+    
+    'Previous date indicator
+    Dim PrevIndic As Integer
+    If Sheets("TEMP").Range("R2").Value < Sheets("Home").Range("C8").Value Then
+        PrevIndic = 1
+    Else
+        PrevIndic = 0
+    End If
+    
+    'Apply formulas to all rows
+    Sheets("TEMP").Select
+    Range("Q2").Select
+    Selection.Copy
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, _
+        SkipBlanks:=False, Transpose:=False
+    Application.CutCopyMode = False
+    
+    'Format to text to optimise for space
+    Range("Q2").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.Copy
+    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+    Application.CutCopyMode = False
+    
+        'Kibana Data error Fix
+        Cells.Replace What:="#VALUE!", Replacement:=Sheets("TEMP").Range("A1").Value, LookAt:=xlWhole, _
+        SearchOrder:=xlByRows, MatchCase:=False, SearchFormat:=False, _
+        ReplaceFormat:=False
+        
+    Range("R2:U2").Select
+    Selection.Copy
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, _
+        SkipBlanks:=False, Transpose:=False
+        
+    Range("R2:U2").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.Copy
+    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+    Application.CutCopyMode = False
+
+' Number Format Fix
+    Sheets("TEMP").Select
+    Range("One[One]").Copy
+    Range("G2:H2").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.PasteSpecial Paste:=xlPasteAll, Operation:=xlMultiply, _
+        SkipBlanks:=False, Transpose:=False
+    Application.CutCopyMode = False
+    Range("A1").Select
+    
+    Cells.Replace What:=" - ", Replacement:="", LookAt:=xlWhole, _
+    SearchOrder:=xlByRows, MatchCase:=False, SearchFormat:=False, _
+    ReplaceFormat:=False
+
+' Paste to Raw_Data tab
+    Sheets("TEMP").Select
+    Range("A2:U2").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.Copy
+    Sheets("Raw_Data").Select
+    Range("A2").Select
+    Selection.End(xlDown).Select
+    ActiveCell.Offset(1, 0).Select
+    ActiveSheet.Paste
+    Application.CutCopyMode = False
+        
+'Update Pivot
+    Sheets("Helper").Select
+    ActiveSheet.PivotTables("Aggregate").PivotCache.Refresh
+    ThisWorkbook.Worksheets("Helper").PivotTables("Aggregate").PivotFields("Week").AutoSort xlAscending, "Week"
+    ActiveSheet.PivotTables("Aggregate").PivotFields("Week").AutoSort xlAscending, _
+        "Week"
+    
+    Sheets("Home").Select
+    ActiveChart.ClearToMatchStyle
+    ActiveChart.ChartStyle = 332
+    
+'Fix Selections just in case
+    ThisWorkbook.Worksheets("Helper").Select
+    ThisWorkbook.Worksheets("Helper").Range("A1").Select
+    ThisWorkbook.Worksheets("Raw_Data").Select
+    ThisWorkbook.Worksheets("Raw_Data").Range("A1").Select
+    
+'End Macro
+
+    Sheets("Home").Select
+    Range("A1").Select
+    Sheets("TEMP").Delete
+    
+    Sheets("Raw_Data").Protect Password:="sgabarro"
+    Sheets("Helper").Protect Password:="sgabarro"
+    
+    Application.DisplayAlerts = True
+    Application.ScreenUpdating = True
+    
+    MsgBox "Done :)"
+    
+End Sub

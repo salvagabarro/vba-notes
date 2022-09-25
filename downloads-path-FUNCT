@@ -1,0 +1,3 @@
+Function DownloadsPath() As String
+    DownloadsPath = Environ$("USERPROFILE") & "\Downloads"
+End Function

@@ -1,0 +1,39 @@
+'Format to text to optimise for space
+    Range("Q2").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.Copy
+    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+    Application.CutCopyMode = False
+    
+'Kibana Data error Fix
+    Cells.Replace What:="#VALUE!", Replacement:=Sheets("TEMP").Range("A1").Value, LookAt:=xlWhole, _
+    SearchOrder:=xlByRows, MatchCase:=False, SearchFormat:=False, _
+    ReplaceFormat:=False
+        
+    Range("R2:U2").Select
+    Selection.Copy
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, _
+        SkipBlanks:=False, Transpose:=False
+        
+    Range("R2:U2").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.Copy
+    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+    Application.CutCopyMode = False
+
+' Number Format Fix
+    Sheets("TEMP").Select
+    Range("One[One]").Copy
+    Range("G2:H2").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.PasteSpecial Paste:=xlPasteAll, Operation:=xlMultiply, _
+        SkipBlanks:=False, Transpose:=False
+    Application.CutCopyMode = False
+    Range("A1").Select
+
+    Cells.Replace What:=" - ", Replacement:="", LookAt:=xlWhole, _
+    SearchOrder:=xlByRows, MatchCase:=False, SearchFormat:=False, _
+    ReplaceFormat:=False

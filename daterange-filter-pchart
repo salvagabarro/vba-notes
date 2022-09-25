@@ -1,0 +1,116 @@
+'Set range options of studied weeks
+    Dim DateRange As Variant
+    If Worksheets("Home").Range("F3").Value = "Previous one" Then
+        DateRange = 1
+    ElseIf Worksheets("Home").Range("F3").Value = "Last 2" Then
+        DateRange = 2
+    ElseIf Worksheets("Home").Range("F3").Value = "Last 4" Then
+        DateRange = 4
+    ElseIf Worksheets("Home").Range("F3").Value = "Last 6" Then
+        DateRange = 6
+    ElseIf Worksheets("Home").Range("F3").Value = "Last 8" Then
+        DateRange = 8
+    ElseIf Worksheets("Home").Range("F3").Value = "Historical" Then
+        DateRange = Worksheets("Home").Range("F2").Value - Worksheets("Home").Range("C8").Value
+    Else
+    End If
+    
+'Range compatiblitity check; F2 start point, C5 today's weeknum, C8 first recorded week, C10 last recorded week, F4&F5 filters
+    If (Worksheets("Home").Range("F2").Value - DateRange) < Worksheets("Home").Range("C8").Value Then
+    Sheets("Helper").Protect Password:="your_password"
+    Sheets("Raw_Data").Protect Password:="your_password"
+    MsgBox "The range of weeks you have selected exceed the available data. The oldest available datapoint is for Wk" & Worksheets("Home").Range("C8").Value & ", and the range you have selected would require having data from Wk" & (Worksheets("Home").Range("F2").Value - DateRange) & " onwards." & vbNewLine & vbNewLine & "You can add this missing data by pressing on the 'Update Data' button and adjusting the dateframe for the missing weeks."
+    Exit Sub
+    End If
+    
+    If Worksheets("Home").Range("F4").Value = Worksheets("Home").Range("F5").Value Then
+    Sheets("Helper").Protect Password:="your_password"
+    Sheets("Raw_Data").Protect Password:="your_password"
+    MsgBox "The Chart filters cannot be the same, please select another 'Second (Optional) Filter' or, otherwise, select the '(none)' option."
+    Exit Sub
+    End If
+    
+'Wipe all previous filters
+    Set pvt = Sheets("Helper").PivotTables("Aggregate")
+    For Each pvf In pvt.ColumnFields
+        On Error Resume Next
+        pvf.Orientation = xlHidden
+    Next pvf
+
+'Select row filters (weeks)
+    With ThisWorkbook.Worksheets("Helper").PivotTables("Aggregate").PivotFields("Week")
+        .Orientation = xlRowField
+        .Position = 1
+    End With
+    
+    Dim item As String
+    Dim item2 As String
+    Dim item3 As String
+    
+    Dim i As Variant
+    Dim j As Variant
+    Dim k As Variant
+    
+    For i = (Worksheets("Home").Range("F2").Value - DateRange) To Worksheets("Home").Range("F2").Value
+        item = i
+          pvtField.PivotItems(item).Visible = True
+          
+            For j = Worksheets("Home").Range("C8").Value To (Worksheets("Home").Range("F2").Value - DateRange - 1)
+                item2 = j
+                If item2 = (Worksheets("Home").Range("F2").Value - DateRange) Then
+                'Do nothing
+                ElseIf item2 <> item Then pvtField.PivotItems(item2).Visible = False
+                End If
+            Next j
+          
+            For k = (Worksheets("Home").Range("F2").Value + 1) To Worksheets("Home").Range("C10").Value
+            item3 = k
+            If item3 <> item Then pvtField.PivotItems(item3).Visible = False
+            Next k
+    Next i
+    
+    On Error Resume Next
+    pvtField.PivotItems("(blank)").Visible = False
+    
+'Add new column filters, according to cell list selection
+    With ThisWorkbook.Worksheets("Helper").PivotTables("Aggregate").PivotFields(GraphFilter1)
+        .Orientation = xlColumnField
+        .Position = 1
+        On Error Resume Next
+        .PivotItems("(blank)").Visible = False
+    End With
+    
+    If GraphFilter2 = "(none)" Then
+        'Do nothing
+    Else
+        With ThisWorkbook.Worksheets("Helper").PivotTables("Aggregate").PivotFields(GraphFilter2)
+            .Orientation = xlColumnField
+            .Position = 1
+            On Error Resume Next
+            .PivotItems("(blank)").Visible = False
+        End With
+    End If
+
+'Fix Table in Home, if a copy of the pivotchart exists in "Home" 
+    If IsEmpty(Worksheets("Home").Range("Q2").Value) = True Then
+        'Do nothing
+    Else
+        Sheets("Home").Range("Q2:AA70").Select
+        Selection.Delete Shift:=xlToLeft
+        Sheets("Home").Range("A1").Select
+        
+        Sheets("Helper").Select
+        ActiveSheet.PivotTables("Aggregate").PivotSelect "", xlDataAndLabel, True
+        Selection.Copy
+        Sheets("Home").Select
+        Range("Q2").Select
+        ActiveSheet.Paste
+        Application.CutCopyMode = False
+    End If
+
+' Update PivotChart
+    ThisWorkbook.Worksheets("Home").Select
+    ActiveSheet.ChartObjects("AmnestyChart").Activate
+    ActiveChart.ClearToMatchStyle
+    ActiveChart.ChartStyle = 332
+    Range("A1").Select

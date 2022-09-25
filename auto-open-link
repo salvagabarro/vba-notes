@@ -13,7 +13,8 @@
 'Wait for input to continue prompt
     objShell.Run (datasource_url)
     MsgBox "Download the data by clicking on 'Export as CSV'" & vbNewLine & vbNewLine & "Press 'Accept' only once you've done so"
-  
+
+'Added wait time in case download isn't complete
     Application.Wait (Now + TimeValue("0:00:03"))
     
     

@@ -1,0 +1,19 @@
+Public Function DayString(ByVal pDate As Date) As String
+' Para agregar th, rd, st a dias
+
+    Dim intDay As Integer
+    Dim strReturn As String
+
+    intDay = Day(pDate)
+    Select Case intDay
+    Case 1, 21, 31
+        strReturn = intDay & "st"
+    Case 2, 22
+        strReturn = intDay & "nd"
+    Case 3, 23
+        strReturn = intDay & "rd"
+    Case Else
+        strReturn = intDay & "th"
+    End Select
+    DayString = strReturn
+End Function

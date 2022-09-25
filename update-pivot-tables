@@ -1,0 +1,16 @@
+'Update Pivot
+    Sheets("Helper").Select
+    ActiveSheet.PivotTables("Aggregate").PivotCache.Refresh
+    ThisWorkbook.Worksheets("Helper").PivotTables("Aggregate").PivotFields("Week").AutoSort xlAscending, "Week"
+    ActiveSheet.PivotTables("Aggregate").PivotFields("Week").AutoSort xlAscending, _
+        "Week"
+    
+    Sheets("Home").Select
+    ActiveChart.ClearToMatchStyle
+    ActiveChart.ChartStyle = 332
+    
+'Fix Selections just in case
+    ThisWorkbook.Worksheets("Helper").Select
+    ThisWorkbook.Worksheets("Helper").Range("A1").Select
+    ThisWorkbook.Worksheets("Raw_Data").Select
+    ThisWorkbook.Worksheets("Raw_Data").Range("A1").Select

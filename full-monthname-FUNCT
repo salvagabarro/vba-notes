@@ -1,0 +1,17 @@
+Function MonthNameENG(mo)
+' Para pasar de meses numerados a nombres
+    If mo = 1 Then MonthNameENG = "January"
+    If mo = 2 Then MonthNameENG = "February"
+    If mo = 3 Then MonthNameENG = "March"
+    If mo = 4 Then MonthNameENG = "April"
+    If mo = 5 Then MonthNameENG = "May"
+    If mo = 6 Then MonthNameENG = "June"
+    If mo = 7 Then MonthNameENG = "July"
+    If mo = 8 Then MonthNameENG = "August"
+    If mo = 9 Then MonthNameENG = "September"
+    If mo = 10 Then MonthNameENG = "October"
+    If mo = 11 Then MonthNameENG = "November"
+    If mo = 12 Then MonthNameENG = "December"
+    
+
+End Function

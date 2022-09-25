@@ -1,0 +1,33 @@
+' Sort connected Pivot Table in correct order (ASC or DESC) after adding new data to it
+    Sheets("Helper").Select
+    ActiveSheet.PivotTables("Aggregate").PivotCache.Refresh
+    ThisWorkbook.Worksheets("Helper").PivotTables("Aggregate").PivotFields("Week").AutoSort xlAscending, "Week"
+    ActiveSheet.PivotTables("Aggregate").PivotFields("Week").AutoSort xlAscending, _
+        "Week"
+
+'Set variables
+    Dim wb As Workbook
+    Dim ws As Worksheet
+    Dim pvt As PivotTable
+    Dim pvtField As PivotField
+
+    Set wb = ThisWorkbook
+    Set ws = wb.Worksheets("Helper")
+    Set pvt = ws.PivotTables("Aggregate")
+    Set pvtField = pvt.PivotFields("Week")
+    
+' F4 and F5 contain text which matches the possible charts' filters, though they can also be empty.
+    Dim GraphFilter1 As String
+    If Worksheets("Home").Range("F4").Value = "Total" Then
+        GraphFilter1 = ""
+    Else
+        GraphFilter1 = Worksheets("Home").Range("F4").Value
+    End If
+    
+    Dim GraphFilter2 As String
+    If Worksheets("Home").Range("F5").Value = "Total" Then
+        GraphFilter2 = ""
+    Else
+        GraphFilter2 = Worksheets("Home").Range("F5").Value
+    End If
+    

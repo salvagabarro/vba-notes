@@ -1,0 +1,20 @@
+'Create Backup
+    'Set backup path and file name and extension, write it in table named [Backup_Floder] 
+    Sheets("Helper").Select
+    Range("Backup_Folder[Backup_Folder]").Select
+    ActiveCell.FormulaR1C1 = "folder_path" & "\Backup_Wk" & WorksheetFunction.IsoWeekNum(Date + 1) & ".xlsm"
+    
+    Dim bckpSource As Variant
+    bckpSource = Range("Backup_Folder[Backup_Folder]").Value
+    Dim bckpName As Variant
+    bckpName = "Backup_Wk" & WorksheetFunction.IsoWeekNum(Date + 1) & ".xlsm"
+         
+    'Save file and delete TEMP file we're trying to load
+    ActiveWorkbook.SaveCopyAs bckpSource
+    Workbooks.Open bckpSource
+    
+    Workbooks(bckpName).Activate
+        Workbooks(bckpName).Sheets("Home").Select
+        On Error Resume Next
+        Workbooks(bckpName).Sheets("TEMP").Delete
+    Workbooks(bckpName).Close SaveChanges:=True

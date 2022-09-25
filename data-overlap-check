@@ -1,0 +1,46 @@
+'Add column with unique ProblemID, using existing columns
+    'Crear Celda con Formula
+    Sheets("TEMP").Select
+    Range("P1").Select
+    ActiveCell.FormulaR1C1 = "UniqueID"
+    Range("P2").Select
+    ActiveCell.FormulaR1C1 = "=RC[-15]&RC[-14]&RC[-12]&RC[-11]"
+    Range("P2").Select
+    
+    'Pegar Formula en resto de filas
+    Selection.Copy
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, _
+        SkipBlanks:=False, Transpose:=False
+    
+    'Pasar de formato formula a texto para optimizar
+    Range("P2").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.Copy
+    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+    Application.CutCopyMode = False
+  
+'Check if data already exists in destination (which already has ID)
+    Dim c As Range
+    For Each c In Worksheets("TEMP").Range("P10:P20")
+        If IsNumeric(Application.Match(c, Worksheets("Raw_Data").Range("P:P"), 0)) Then
+            Dim d As Range
+            For Each d In Worksheets("TEMP").Range("P5000:P5020")
+                If IsNumeric(Application.Match(c, Worksheets("Raw_Data").Range("P:P"), 0)) Then
+                    Sheets("Home").Select
+                    Sheets("TEMP").Delete
+                    Sheets("Helper").Protect Password:="your_password"
+                    Sheets("Raw_Data").Protect Password:="your_password"
+                    MsgBox "This dataset has already been loaded." & vbNewLine & "A match with previous weeks' data has been detected in row 10." & vbNewLine & vbNewLine & "The loading process has stopped to avoid duplication." & vbNewLine & vbNewLine & "If this is an error, please check that the correct file is present in your Downloads folder - and remember that you can only automatically load data regarding last weeks Amnesty." & vbNewLine & vbNewLine & "Lastly, make sure that you're running this Spreadsheet from your computer (not from a shared folder) and that the name of the .csv file is the largest one from A to Z."
+                    Exit Sub
+                End If
+            Next d
+        End If
+    Next c
+    
+    If IsEmpty(ThisWorkbook.Worksheets("TEMP").Range("P2").Value) = True Then
+    Sheets("Home").Select
+    Sheets("TEMP").Delete
+    MsgBox "There has been an unexpected error loading the data, new columns cannot be added" & vbNewLine & vbNewLine & "This could be a result of Kibana changing the format of .csv exports - please ask your local Analyst to check and update the code."
+    End If

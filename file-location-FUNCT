@@ -1,0 +1,6 @@
+Function findFile(strFileStart As String) As String
+' Para encontrar archivos que comiencen con:
+
+findFile = Dir(strFileStart & "*", vbNormal)
+
+End Function

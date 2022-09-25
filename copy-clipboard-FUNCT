@@ -1,0 +1,7 @@
+Function StoreData(varText As Variant) As String
+' Para copiar cosas al clipboard
+
+  Dim objCP As Object
+  Set objCP = CreateObject("HtmlFile")
+  objCP.ParentWindow.ClipboardData.SetData "text", varText
+End Function

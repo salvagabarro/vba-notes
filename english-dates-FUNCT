@@ -1,0 +1,5 @@
+Public Function FMT$(ByVal Value, ByVal strFormat)
+'Para pasar de variables en español (regon default) a inglés forzosamente
+
+    FMT = VBA.Format$(Value, strFormat)
+End Function

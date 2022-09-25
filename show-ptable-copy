@@ -1,0 +1,27 @@
+Sub ShowHideTable()
+
+    Application.ScreenUpdating = False
+    Sheets("Helper").Unprotect Password:="sgabarro"
+    Sheets("Raw_Data").Unprotect Password:="sgabarro"
+
+'Show table if missing
+    If IsEmpty(Worksheets("Home").Range("Q2").Value) = True Then
+        ThisWorkbook.Worksheets("Helper").PivotTables("Aggregate").TableRange2.Copy
+        ThisWorkbook.Worksheets("Home").Range("Q2").PasteSpecial Paste:=xlPasteAllUsingSourceTheme, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+        Application.CutCopyMode = False
+        ThisWorkbook.Worksheets("Helper").Select
+        ThisWorkbook.Worksheets("Helper").Range("A1").Select
+        ThisWorkbook.Worksheets("Home").Select
+        ThisWorkbook.Worksheets("Home").Range("A1").Select
+    Else
+        ThisWorkbook.Worksheets("Home").Select
+        ThisWorkbook.Worksheets("Home").Range("Q2:AA70").Select
+        Selection.Delete Shift:=xlToLeft
+        ThisWorkbook.Worksheets("Home").Range("A1").Select
+    End If
+
+    Application.ScreenUpdating = True
+    Sheets("Helper").Protect Password:="sgabarro"
+    Sheets("Raw_Data").Protect Password:="sgabarro"
+
+End Sub

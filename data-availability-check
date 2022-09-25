@@ -1,0 +1,22 @@
+    If Worksheets("Home").Range("F2").Value = "" Then
+        Sheets("Helper").Protect Password:="your_password"
+        Sheets("Raw_Data").Protect Password:="your_password"
+        MsgBox "Please state the week you want to analyze"
+        Exit Sub
+    ElseIf Worksheets("Home").Range("F2").Value > Worksheets("Home").Range("C10").Value Then
+        Sheets("Helper").Protect Password:="your_password"
+        Sheets("Raw_Data").Protect Password:="your_password"
+        MsgBox "Data for the week you have selected doesn't exist yet, the most recent value is for week " & Worksheets("Home").Range("C10").Value & "."
+        Exit Sub
+    ElseIf Worksheets("Home").Range("F2").Value < Worksheets("Home").Range("C8").Value Then
+        Sheets("Helper").Protect Password:="your_password"
+        Sheets("Raw_Data").Protect Password:="your_password"
+        MsgBox "Data has not yet been added for the week you have selected, the first accounted-for week is Wk" & Worksheets("Home").Range("C8").Value & "."
+        Exit Sub
+    ElseIf Worksheets("Home").Range("C5").Value > (Worksheets("Home").Range("C10").Value + 1) Then
+        Sheets("Helper").Protect Password:="your_password"
+        Sheets("Raw_Data").Protect Password:="your_password"
+        MsgBox "Please update the dataset before changing the Chart." & vbNewLine & vbNewLine & "You can do so by pressing the 'Update Data' button - plase make sure you are connected to an Amazon network"
+        Exit Sub
+    Else
+    End If

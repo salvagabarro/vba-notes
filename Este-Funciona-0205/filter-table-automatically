@@ -1,0 +1,36 @@
+Sub Eliminar_Defectos_SRC()
+'
+' Eliminar_Defectos_SRC Macro
+    'Esta sección pretende eliminar los defectos que, en condiciones normales, se eliminarían automáticamente por SRC.
+        'Ej: Overage y Shortage del mismo número de unidades del mismo ASIN, por el mismo asociado en el mismo tote.
+    
+    Sheets("New_Data").Select
+    Dim wks As Worksheet
+    Dim tbl As ListObject
+    Dim lastRow As Long
+    Dim rng As Range
+
+    Set wks = ActiveWorkbook.Sheets("New_Data")
+
+    Set tbl = wks.ListObjects("Table_New_Data")
+
+    ' Filter and delete all rows that are larger than 0
+    With tbl.Range
+        ' Switch off the filters before turning it on
+        .AutoFilter
+         ' Field:=24 must be equal to the column where you have the criteria in
+        .AutoFilter Field:=24, Criteria1:=">0"
+
+        ' Set the range for the filtered cells
+        Set rng = .Offset(1).Resize(.Rows.Count - 1).SpecialCells(xlCellTypeVisible)
+        .AutoFilter ' Turn off the filter
+        rng.DELETE ' Delete the filtered cells
+        
+    End With
+End Sub
+
+    Call Eliminar_Defectos_SRC
+    Range("X:X").Select
+    Selection.DELETE
+    Range("A1").Select
+    Cells.Select

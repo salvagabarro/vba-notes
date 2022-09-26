@@ -1,0 +1,14 @@
+Sub RefreshAllPivotTables()
+
+Dim PT As PivotTable
+Dim WS As Worksheet
+
+    For Each WS In ThisWorkbook.Worksheets
+
+        For Each PT In WS.PivotTables
+          PT.RefreshTable
+        Next PT
+
+    Next WS
+
+End Sub

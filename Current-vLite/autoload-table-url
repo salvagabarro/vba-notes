@@ -1,0 +1,24 @@
+Sub rosterquery()
+Dim qt As QueryTable
+
+Worksheets("Roster").Activate
+Columns("A:Z").Select
+Selection.Clear
+
+Set qt = Worksheets("Roster").QueryTables.Add( _
+    Connection:="URL;" & "https://fclm-portal.amazon.com/employee/employeeRoster?reportFormat=HTML&warehouseId=BCN1&Shift+Pattern=Shift+Pattern&hideColumns=Photo%2CDepartment+ID%2CJob+Title%2CManagement+Area+ID%2CBadge+RFID%2CExempt&submit=true", _
+    Destination:=Worksheets("Roster").Range("A1"))
+
+With qt
+    .RefreshOnFileOpen = False
+    .Name = "Roster"
+    .WebFormatting = xlWebFormattingRTF
+    .WebSelectionType = xlSpecifiedTables
+    .WebTables = "3"
+    .BackgroundQuery = False
+    .Refresh
+End With
+
+Call RefreshAllPivotTables
+
+End Sub

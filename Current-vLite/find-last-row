@@ -1,0 +1,6 @@
+'In example, we're looking in column B. This will give us row number so we can then execute numbered actions
+Dim lrow As Long
+lrow = Cells(Rows.count, 2).End(xlUp).Row
+
+If lrow >= 5 Then
+    [Execute something]

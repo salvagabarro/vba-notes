@@ -1,0 +1,14 @@
+' This function will remove a determined number of spaces (h) from all rows between the 5th and last 
+
+Public Function RemovingSpaces(col As Integer)
+    Dim last As Integer
+    Dim h As Integer
+    last = Worksheets("Dwell").Cells(Rows.count, col).End(xlUp).Row
+    For h = 5 To last
+        If InStr(1, Worksheets("Dwell").Cells(h, col).Value, ",") Then
+            Worksheets("Dwell").Cells(h, col).Value = Replace("'" & Worksheets("Dwell").Cells(h, col).Value, " ", "")
+        Else
+            Worksheets("Dwell").Cells(h, col).Value = Replace(Worksheets("Dwell").Cells(h, col).Value, " ", "")
+        End If
+    Next h
+End Function

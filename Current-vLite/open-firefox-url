@@ -1,0 +1,20 @@
+Sub OpenInFireFoxNewTab(url As String)
+  Dim pathFireFox As String
+  pathFireFox = "C:\Program Files\firefox.exe -new-tab"
+  If Sheets("Dwell").Shapes("Check Box 8").ControlFormat.Value = 1 Then
+    If Dir(pathFireFox) = "" Then pathFireFox = "C:\Program Files\Mozilla Firefox\firefox.exe"
+    If Dir(pathFireFox) = "" Then
+        MsgBox "FireFox Path Not Found", vbCritical, "Macro Ending"
+        End
+        'Exit Sub
+    End If
+  Else
+    If Dir(pathFireFox) = "" Then pathFireFox = "C:\Program Files (x86)\Mozilla Firefox\firefox.exe"
+    If Dir(pathFireFox) = "" Then
+        MsgBox "FireFox Path Not Found", vbCritical, "Macro Ending"
+        End
+        'Exit Sub
+    End If
+  End If
+  Shell """" & pathFireFox & """" & " -new-tab " & url, vbHide
+End Sub

@@ -1,0 +1,31 @@
+' Amazon dates are often text-based in the following format: March 4th 2022, 16:20:39.000
+' Formula to fix this is: =DATE(NUMBERVALUE(MID(A10;FIND(",";A10;1)-4;4));VLOOKUP(LEFT(A10;FIND(" ";A10;1)-1);Months[[Column1]:[n]];2;0);IFERROR(NUMBERVALUE(MID(A10;FIND(" ";A10;1)+1;2));NUMBERVALUE(MID(A10;FIND(" ";A10;1)+1;1))))
+
+Sub Dates_Fix()
+
+    Sheets("DEI").Select
+    Range("S1").Select
+    ActiveCell.FormulaR1C1 = "Dates"
+    Range("S2").Select
+    ActiveCell.FormulaR1C1 = _
+        "=DATE(NUMBERVALUE(MID(RC[-20],FIND("","",RC[-20],1)-4,4)),VLOOKUP(LEFT(RC[-20],FIND("" "",RC[-20],1)-1),Months[[Column1]:[n]],2,0),IFERROR(NUMBERVALUE(MID(RC[-20],FIND("" "",RC[-20],1)+1,2)),NUMBERVALUE(MID(RC[-20],FIND("" "",RC[-20],1)+1,1))))"
+    Range("S2").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.Copy
+    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+
+    Sheets("D_E_I").Select
+    Range("T1").Select
+    ActiveCell.FormulaR1C1 = "Week"
+    Range("T2").Select
+    ActiveCell.FormulaR1C1 = "=ISOWEEKNUM(RC[-1]+1)"
+    Range("T2").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.Copy
+    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+    Range("A1").Select
+    MsgBox "Done"
+    
+End Sub

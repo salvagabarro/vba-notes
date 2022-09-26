@@ -24,7 +24,7 @@
         :=False, Transpose:=False
     Application.CutCopyMode = False
 
-' Number Format Fix
+' Number in Text Format Fix
     Sheets("TEMP").Select
     Range("One[One]").Copy
     Range("G2:H2").Select
